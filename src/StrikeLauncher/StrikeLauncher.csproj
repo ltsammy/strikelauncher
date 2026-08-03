@@ -12,7 +12,6 @@
     <Product>Strike Launcher</Product>
     <Company>Age of Clones - Strike Platoon</Company>
     <Version>0.1.0</Version>
-    <InvariantGlobalization>true</InvariantGlobalization>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -20,12 +19,12 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
-    <PackageReference Include="Steamworks.NET" Version="20.2.0" />
     <PackageReference Include="Velopack" Version="0.*" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="steam_appid.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="steam_api64.dll" CopyToOutputDirectory="PreserveNewest" />
     <None Include="config\default-config.json" CopyToOutputDirectory="PreserveNewest" />
     <None Remove="Assets\logo.png" />
     <None Remove="Assets\app.ico" />

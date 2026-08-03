@@ -63,4 +63,9 @@ public partial class SettingsWindow : Window
     {
         DialogResult = false;
     }
+
+    private void OnCloseIconClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+    }
 }

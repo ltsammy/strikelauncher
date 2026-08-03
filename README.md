@@ -49,9 +49,9 @@ ServerDataUrl: https://ageofclones.de/strikelauncher/launcher.json
 
 Weitere Schritte:
 
-1. Repo auf GitHub anlegen (z. B. `dein-name/strikelauncher`) und diesen Ordner pushen
-   - wird weiterhin für den **Auto-Updater** (Velopack-Releases) gebraucht, siehe
-   `GithubRepoUrl` in `default-config.json`.
+1. Repo: https://github.com/ltsammy/strikelauncher (bereits als `GithubRepoUrl` und
+   `Ts3PluginUrl` in `default-config.json` hinterlegt) - wird für den **Auto-Updater**
+   (Velopack-Releases) sowie für die `.ts3_plugin`-Datei gebraucht.
 2. `data/modlist.example.html` als Vorlage für den echten Export aus dem offiziellen
    Arma 3 Launcher nutzen (Mods-Tab -> Preset -> "Export to file" -> HTML) und unter
    `https://ageofclones.de/strikelauncher/modlist.html` bereitstellen. Der Parser sucht
@@ -89,29 +89,29 @@ dotnet build StrikeLauncher.sln -c Release
 dotnet run --project src/StrikeLauncher/StrikeLauncher.csproj
 ```
 
-> **Hinweis:** Dieses Projekt wurde in einer Sandbox ohne installiertes .NET SDK
-> geschrieben - der Code wurde also nicht lokal kompiliert. Die GitHub Action ist der
-> erste echte Build-Check. Wahrscheinlichste Stolpersteine beim ersten Build:
-> einzelne NuGet-Paketversionen (`CommunityToolkit.Mvvm`, `HtmlAgilityPack`,
-> `Microsoft.Data.Sqlite`, `Steamworks.NET`, `Velopack`) leicht anpassen, falls
-> `dotnet restore` eine Version nicht findet (`dotnet add package <Name>` zieht dann
-> automatisch die aktuell verfügbare).
+> **Stand:** Mit .NET 8 SDK 8.0.423 lokal gebaut, gestartet und per Screenshot
+> geprüft (`dotnet build` + `dotnet publish -r win-x64 --self-contained true` beide
+> grün, 0 Fehler/Warnungen). Pfaderkennung (Steam/Arma3/TeamSpeak), Logo, Hintergrund-
+> Layer und das Cold-Iron-Protocol-Theme laufen wie vorgesehen. Ein Bug wurde dabei
+> gefunden und gefixt: `<InvariantGlobalization>true</InvariantGlobalization>` im
+> `.csproj` bricht WPF-Databinding zur Laufzeit (`Cannot find non-neutral culture
+> related to 'en-us'`) - wurde entfernt, falls das jemandem beim eigenen Anpassen
+> wieder unterkommt.
 
 ## 3. Steamworks (automatisches Abonnieren)
 
 Für das echte Auto-Subscribe (ohne dass der Spieler im Browser klicken muss) wird die
-native Steam-Client-API angesprochen - das erfordert `steam_api64.dll` neben der
-`.exe`. Diese DLL ist Teil des Steamworks SDK und darf aus Lizenzgründen hier nicht
-automatisch mitgeliefert werden:
+native Steam-Client-API angesprochen - das erfordert `steam_api64.dll` neben der `.exe`.
 
-1. Kostenlosen Account auf https://partner.steamgames.com anlegen, SDK-Lizenz
-   akzeptieren, SDK herunterladen.
-2. `redistributable_bin/win64/steam_api64.dll` nach `src/StrikeLauncher/` kopieren und
-   im `.csproj` als `<None Include="steam_api64.dll" CopyToOutputDirectory="PreserveNewest" />`
-   eintragen (oder direkt in den Publish-Ordner legen).
-3. Funktioniert nur, wenn Steam läuft und der Account Arma 3 besitzt. Läuft Steam
-   nicht, zeigt der Launcher das an und der Spieler muss die fehlenden Mods manuell im
-   Workshop abonnieren.
+`steam_api64.dll` liegt bereits unter `src/StrikeLauncher/steam_api64.dll` (aus dem
+Steamworks SDK v1.65, `redistributable_bin/win64/`) und wird im `.csproj` automatisch
+mit ins Build-Verzeichnis kopiert. Diese DLL ist laut Steamworks-SDK-Lizenz frei mit
+der eigenen Anwendung weiterverteilbar, daher im Repo eingecheckt. Bei einem SDK-Update
+einfach dieselbe Datei ersetzen (gleicher Dateiname).
+
+Funktioniert nur, wenn Steam läuft und der Account Arma 3 besitzt. Läuft Steam nicht,
+zeigt der Launcher das an und der Spieler muss die fehlenden Mods manuell im Workshop
+abonnieren.
 
 ## 4. TeamSpeak 3
 
@@ -213,4 +213,3 @@ die zu diesem einen kohärenten Ergebnis zusammengeführt wurden.
   Spiel im Besitz des Accounts - kein Server-seitiger Weg möglich (Valve bietet keine
   öffentliche API dafür an).
 - TS3-Sound-Stummschaltung und Plugin-Erkennung sind best-effort, siehe oben.
-- `steam_api64.dll` muss aus Lizenzgründen manuell besorgt werden (siehe Abschnitt 3).

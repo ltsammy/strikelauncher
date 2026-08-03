@@ -39,7 +39,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ModStatusItem> Mods { get; } = new();
 
-    public ObservableCollection<string> LogLines { get; } = new();
+    [ObservableProperty]
+    private string _logText = string.Empty;
 
     [ObservableProperty]
     private string _statusText = "Bereit.";
@@ -156,7 +157,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (!_steamWorkshop.IsInitialized && !_steamWorkshop.Initialize())
             {
-                Log("Steam läuft nicht (oder Arma 3 wird nicht besessen) - automatisches Abonnieren nicht möglich. Bitte Mods manuell im Steam Workshop abonnieren.");
+                Log($"Steam-Init fehlgeschlagen ({_steamWorkshop.LastError ?? "unbekannt"}) - automatisches Abonnieren nicht möglich. Bitte Mods manuell im Steam Workshop abonnieren.");
                 return;
             }
 
@@ -327,7 +328,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            LogLines.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+            var line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            LogText = LogText.Length == 0 ? line : LogText + Environment.NewLine + line;
             StatusText = message;
         });
     }
