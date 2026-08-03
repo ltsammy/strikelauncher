@@ -52,14 +52,17 @@ alles andere ist feste App-Konfiguration über `default-config.json`.
    {
      "arma3": { "ip": "82.24.85.241", "port": 2592, "password": "" },
      "teamSpeak": { "host": "94.199.215.95", "port": 9987, "password": "" },
-     "launcherBackgroundUrl": "https://.../background.jpg",
-     "launcherDownloadUrl": "https://.../download"
+     "launcherBackgroundUrl": "https://.../background.jpg"
    }
    ```
    `teamSpeak.host` darf auch `"ip:port"` enthalten (z. B. `"94.199.215.95:9987"`) -
    `ServerDataService` erkennt und entfernt den eingebetteten Port automatisch, bevor
    die `ts3server://`-Verbindungs-URI gebaut wird, damit der Port nicht doppelt landet.
-   `launcherBackgroundUrl`/`launcherDownloadUrl` sind optional (leerer String = aus).
+   `launcherBackgroundUrl` ist optional (leerer String = aus). Ein evtl. weiterhin im
+   Feed vorhandenes `launcherDownloadUrl`-Feld wird vom Launcher nicht mehr genutzt
+   (Download-Seite-Button wurde entfernt - der stabile Direktlink zur jeweils neuesten
+   Setup.exe ist `https://github.com/ltsammy/strikelauncher/releases/latest/download/StrikeLauncher-win-Setup.exe`,
+   falls der extern gebraucht wird, z. B. auf ageofclones.de).
    `launcherBackgroundUrl` sollte JPG/PNG sein - WebP wird von WPFs `BitmapImage` nicht
    garantiert unterstützt (kein eingebauter Codec auf allen Windows-Installationen).
 4. Die `.ts3_plugin`-Datei (Task Force Radio) liegt in `ts3plugin/` und wird über
@@ -234,8 +237,6 @@ Ergebnis zusammengeführt wurden.
 - **Scrollbars**: global über einen impliziten `Style TargetType="ScrollBar"` in
   `App.xaml` themed (dünner Thumb, keine Pfeil-Buttons) statt der weißen OS-Standard-
   Scrollbar.
-- **Download-Seite-Button**: erscheint im Footer nur, wenn `launcherDownloadUrl`
-  gesetzt ist, und öffnet die URL im Standardbrowser.
 
 ## Bekannte Grenzen
 

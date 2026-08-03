@@ -7,8 +7,6 @@ public sealed class ServerData
     public TeamSpeakServerInfo TeamSpeak { get; set; } = new();
 
     public string LauncherBackgroundUrl { get; set; } = string.Empty;
-
-    public string LauncherDownloadUrl { get; set; } = string.Empty;
 }
 
 public sealed class ArmaServerInfo

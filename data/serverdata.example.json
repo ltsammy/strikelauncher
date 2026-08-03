@@ -9,6 +9,5 @@
     "port": 9987,
     "password": ""
   },
-  "launcherBackgroundUrl": "https://ageofclones.de/strikelauncher/background.jpg",
-  "launcherDownloadUrl": "https://ageofclones.de/strikelauncher/download"
+  "launcherBackgroundUrl": "https://ageofclones.de/strikelauncher/background.jpg"
 }

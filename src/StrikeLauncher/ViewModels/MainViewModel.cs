@@ -82,13 +82,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private ImageSource? _backgroundImageSource;
 
     [ObservableProperty]
-    private string? _launcherDownloadUrl;
-
-    partial void OnLauncherDownloadUrlChanged(string? value) => OnPropertyChanged(nameof(HasDownloadUrl));
-
-    public bool HasDownloadUrl => !string.IsNullOrWhiteSpace(LauncherDownloadUrl);
-
-    [ObservableProperty]
     private string? _steamUserName;
 
     [ObservableProperty]
@@ -211,6 +204,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         finally
         {
+            // Close the Steam session again right away instead of keeping it open for
+            // the rest of the launcher's lifetime - Steam's overlay attaches to any
+            // process with a live session, and it's been glitchy sitting on top of this
+            // window, so the exposure window is kept as short as possible.
+            _steamWorkshop.Shutdown();
             IsBusy = false;
         }
     }
@@ -224,7 +222,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             _serverData = await _serverDataService.FetchAsync(_settings.ServerDataUrl);
-            LauncherDownloadUrl = _serverData.LauncherDownloadUrl;
 
             if (!string.IsNullOrWhiteSpace(_serverData.LauncherBackgroundUrl))
             {
@@ -236,13 +233,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             Log($"Serverdaten konnten nicht geladen werden: {ex.Message}");
         }
-    }
-
-    [RelayCommand]
-    private void OpenDownloadPage()
-    {
-        if (string.IsNullOrWhiteSpace(LauncherDownloadUrl)) return;
-        Process.Start(new ProcessStartInfo(LauncherDownloadUrl) { UseShellExecute = true });
     }
 
     [RelayCommand]
@@ -410,9 +400,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task InitializeSteamAsync()
     {
+        // Just a quick in-and-out to grab the profile info for the header, not a
+        // session kept open for the whole app lifetime - see SteamWorkshopService.Shutdown.
         var initialized = await Task.Run(() => _steamWorkshop.Initialize());
         SteamUserName = initialized ? _steamWorkshop.GetPersonaName() : null;
         SteamAvatar = initialized ? _steamWorkshop.GetAvatarImage() : null;
+        _steamWorkshop.Shutdown();
     }
 
     private async Task ServerStatusLoopAsync(CancellationToken ct)

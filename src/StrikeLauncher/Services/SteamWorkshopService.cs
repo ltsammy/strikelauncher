@@ -225,12 +225,28 @@ public sealed class SteamWorkshopService : IDisposable
         return SubscribeOutcome.TimedOut;
     }
 
-    public void Dispose()
+    /// <summary>
+    /// Tears the Steam session back down. Steam's overlay attaches to any process that
+    /// successfully calls SteamAPI_Init while the client is running (there's no public
+    /// API to opt a process out of it) - the overlay hook has been observed rendering
+    /// glitchy/broken in this WPF window, so the launcher only keeps a session open for
+    /// as long as it actually needs one (a quick profile fetch, or an active subscribe)
+    /// instead of for its entire lifetime, to minimize how long that hook has to attach.
+    /// </summary>
+    public void Shutdown()
     {
         _callbackPump?.Dispose();
+        _callbackPump = null;
+
         if (IsInitialized)
         {
             SteamAPI_Shutdown();
         }
+
+        IsInitialized = false;
+        _ugc = IntPtr.Zero;
+        _friends = IntPtr.Zero;
     }
+
+    public void Dispose() => Shutdown();
 }

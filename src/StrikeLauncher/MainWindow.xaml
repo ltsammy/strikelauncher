@@ -192,8 +192,6 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="Download-Seite" Command="{Binding OpenDownloadPageCommand}" Style="{StaticResource GhostButtonStyle}"
-                                    Visibility="{Binding HasDownloadUrl, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}" Margin="0,0,8,0" />
                             <Button Content="Mods prüfen" Command="{Binding CheckAndSubscribeModsCommand}" Style="{StaticResource GhostButtonStyle}"
                                     IsEnabled="{Binding IsBusy, Converter={x:Static conv:InverseBoolConverter.Instance}}" Margin="0,0,8,0" />
                             <Button Content="{Binding StartButtonLabel}" Command="{Binding PrepareAndLaunchCommand}"
