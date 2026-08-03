@@ -78,5 +78,16 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: StrikeLauncher v${{ steps.version.outputs.version }}
           prerelease: false
-          files: ./releases/**
+          body: |
+            ## 📥 Download
+
+            **[StrikeLauncher-win-Setup.exe](https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/StrikeLauncher-win-Setup.exe)** herunterladen und ausführen - mehr braucht's nicht.
+
+            Die übrigen Dateien unten (`RELEASES`, `*.nupkg`, `*.json`, `SHA256SUMS.txt`) sind interne Dateien für den Auto-Updater - die kannst du ignorieren.
+          files: |
+            ./releases/*Setup.exe
+            ./releases/*.nupkg
+            ./releases/RELEASES
+            ./releases/*.json
+            ./releases/SHA256SUMS.txt
           generate_release_notes: true
