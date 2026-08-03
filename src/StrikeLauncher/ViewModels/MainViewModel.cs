@@ -259,7 +259,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             await CheckModsAsync();
             await SubscribeMissingAsync();
 
-            await PrepareTeamSpeakAsync();
+            // TeamSpeak setup failing entirely (network hiccup downloading the plugin,
+            // an unexpected exception, ...) must never prevent Arma 3 from launching.
+            try
+            {
+                await PrepareTeamSpeakAsync();
+            }
+            catch (Exception ex)
+            {
+                Log($"TeamSpeak-Vorbereitung fehlgeschlagen: {ex.Message}");
+            }
 
             LaunchArma3();
         }
@@ -327,8 +336,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (_serverData is not null && !string.IsNullOrWhiteSpace(_serverData.TeamSpeak.Host))
         {
-            TeamSpeakService.LaunchAndConnect(ts3Exe, _serverData.TeamSpeak, _settings.PlayerNickname);
-            Log($"Verbinde mit TeamSpeak {_serverData.TeamSpeak.Host}:{_serverData.TeamSpeak.Port}...");
+            // A TeamSpeak connect failure shouldn't take Arma 3 down with it - log and move on.
+            try
+            {
+                TeamSpeakService.LaunchAndConnect(ts3Exe, _serverData.TeamSpeak);
+                Log($"Verbinde mit TeamSpeak {_serverData.TeamSpeak.Host}:{_serverData.TeamSpeak.Port}...");
+            }
+            catch (Exception ex)
+            {
+                Log($"TeamSpeak-Verbindung fehlgeschlagen: {ex.Message}");
+            }
 
             // Give TeamSpeak a head start before Arma 3 launches, instead of both
             // fighting for focus/network at the same instant.
@@ -354,7 +371,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         Log($"Starte mit {modPaths.Count} Mods: {string.Join(", ", Mods.Select(m => m.Name))}");
 
-        var process = GameLauncherService.Launch(arma3Exe, modPaths, _serverData?.Arma3, _settings.PlayerNickname);
+        var process = GameLauncherService.Launch(arma3Exe, modPaths, _serverData?.Arma3);
         Log("Arma 3 wird gestartet...");
         StatusText = "Arma 3 gestartet.";
 

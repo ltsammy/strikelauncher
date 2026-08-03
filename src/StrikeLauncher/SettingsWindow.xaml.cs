@@ -20,11 +20,6 @@ public partial class SettingsWindow : Window
 
         Arma3PathBox.Text = current.Arma3Path ?? string.Empty;
         TeamSpeakPathBox.Text = current.TeamSpeakPath ?? string.Empty;
-        NicknameBox.Text = current.PlayerNickname;
-        ModlistUrlBox.Text = current.ModlistUrl;
-        ServerDataUrlBox.Text = current.ServerDataUrl;
-        Ts3PluginUrlBox.Text = current.Ts3PluginUrl;
-        GithubRepoUrlBox.Text = current.GithubRepoUrl;
         MuteSoundsCheck.IsChecked = current.MuteTeamSpeakSounds;
     }
 
@@ -47,12 +42,12 @@ public partial class SettingsWindow : Window
             SteamPath = _original.SteamPath,
             Arma3Path = string.IsNullOrWhiteSpace(Arma3PathBox.Text) ? null : Arma3PathBox.Text,
             TeamSpeakPath = string.IsNullOrWhiteSpace(TeamSpeakPathBox.Text) ? null : TeamSpeakPathBox.Text,
-            PlayerNickname = NicknameBox.Text.Trim(),
-            ModlistUrl = ModlistUrlBox.Text.Trim(),
-            ServerDataUrl = ServerDataUrlBox.Text.Trim(),
-            Ts3PluginUrl = Ts3PluginUrlBox.Text.Trim(),
+            // Fixed app configuration, not user-editable - carried over unchanged.
+            ModlistUrl = _original.ModlistUrl,
+            ServerDataUrl = _original.ServerDataUrl,
+            Ts3PluginUrl = _original.Ts3PluginUrl,
             Ts3PluginDllHint = _original.Ts3PluginDllHint,
-            GithubRepoUrl = GithubRepoUrlBox.Text.Trim(),
+            GithubRepoUrl = _original.GithubRepoUrl,
             MuteTeamSpeakSounds = MuteSoundsCheck.IsChecked ?? true
         };
 

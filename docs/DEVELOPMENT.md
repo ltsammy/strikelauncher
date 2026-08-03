@@ -16,7 +16,7 @@ src/StrikeLauncher/          C#/.NET 8 WPF App
   config/default-config.json Standard-URLs, die beim ersten Start geladen werden
   steam_appid.txt            107410 (Arma 3) - nötig, damit Steamworks außerhalb von Steam startet
   steam_api64.dll            Steamworks SDK v1.65 Redistributable (lizenzkonform eingecheckt)
-data/                        Beispiel modlist.html / serverdata.json + logo.png/logo.ico (Quelle für Assets/)
+data/                        Beispiel workshop.json / serverdata.json + logo.png/logo.ico (Quelle für Assets/)
 ts3plugin/                   Ablage für die .ts3_plugin Datei
 .github/workflows/build.yml  CI-Build + Velopack-Release bei jedem Push/Tag
 ```
@@ -31,19 +31,21 @@ eigener Webserver. `ModlistService`/`ServerDataService` machen einen simplen
 Aktuell konfiguriert (`src/StrikeLauncher/config/default-config.json`):
 
 ```
-ModlistUrl:    https://ageofclones.de/strikelauncher/modlist.html
+ModlistUrl:    https://ageofclones.de/strikelauncher/workshop.json
 ServerDataUrl: https://ageofclones.de/strikelauncher/launcher.json
 ```
+
+Diese URLs (plus `Ts3PluginUrl`/`GithubRepoUrl`) sind bewusst **nicht** im Settings-
+Fenster editierbar - nur Arma3-/TeamSpeak-Pfad und der Sound-Mute-Schalter sind das,
+alles andere ist feste App-Konfiguration über `default-config.json`.
 
 1. Repo: https://github.com/ltsammy/strikelauncher (bereits als `GithubRepoUrl` und
    `Ts3PluginUrl` in `default-config.json` hinterlegt) - wird für den **Auto-Updater**
    (Velopack-Releases) sowie für die `.ts3_plugin`-Datei gebraucht.
-2. `data/modlist.example.html` als Vorlage für den echten Export aus dem offiziellen
-   Arma 3 Launcher nutzen (Mods-Tab -> Preset -> "Export to file" -> HTML) und unter
-   `https://ageofclones.de/strikelauncher/modlist.html` bereitstellen. Der Parser sucht
-   zuerst nach dem offiziellen `<tr data-type="ModContainer">`-Format (Name steht in
-   `<td data-type="DisplayName">`, nicht im Link selbst) und fällt bei anderen Formaten
-   auf eine generische `<a href=".../filedetails/?id=...">`-Suche zurück.
+2. `data/workshop.example.json` als Vorlage nutzen und unter
+   `https://ageofclones.de/strikelauncher/workshop.json` bereitstellen (von einer
+   echten DB gespeist statt einer bei jedem Deploy überschreibbaren Datei - Format:
+   `{"workshopAddons":[{"id":"450814997","name":"CBA_A3"}, ...]}`, `id` als String).
 3. `data/serverdata.example.json` als Vorlage für `launcher.json` nutzen. Bestätigtes
    Format (`ServerData`-Modell, `System.Text.Json` case-insensitive):
    ```json

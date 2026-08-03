@@ -4,7 +4,7 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="Einstellungen - Strike Launcher"
         Icon="Assets/app.ico"
-        Height="600" Width="640"
+        Height="380" Width="560"
         Background="{StaticResource BackgroundBrush}"
         Foreground="{StaticResource TextBrush}"
         WindowStartupLocation="CenterOwner"
@@ -73,48 +73,31 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Text="VERBINDUNG &amp; PFADE" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,14" />
+                        <TextBlock Grid.Row="0" Text="PFADE" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,14" />
 
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                            <StackPanel>
-                                <TextBlock Text="Arma 3 Installationspfad" />
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="Arma3PathBox" Grid.Column="0" Margin="0,2,8,10" />
-                                    <Button Grid.Column="1" Content="Durchsuchen" Style="{StaticResource GhostButtonStyle}" Click="OnBrowseArma3Click" />
-                                </Grid>
+                        <StackPanel Grid.Row="1">
+                            <TextBlock Text="Arma 3 Installationspfad" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="Arma3PathBox" Grid.Column="0" Margin="0,2,8,10" />
+                                <Button Grid.Column="1" Content="Durchsuchen" Style="{StaticResource GhostButtonStyle}" Click="OnBrowseArma3Click" />
+                            </Grid>
 
-                                <TextBlock Text="TeamSpeak 3 Installationspfad" />
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="TeamSpeakPathBox" Grid.Column="0" Margin="0,2,8,10" />
-                                    <Button Grid.Column="1" Content="Durchsuchen" Style="{StaticResource GhostButtonStyle}" Click="OnBrowseTeamSpeakClick" />
-                                </Grid>
+                            <TextBlock Text="TeamSpeak 3 Installationspfad" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TeamSpeakPathBox" Grid.Column="0" Margin="0,2,8,10" />
+                                <Button Grid.Column="1" Content="Durchsuchen" Style="{StaticResource GhostButtonStyle}" Click="OnBrowseTeamSpeakClick" />
+                            </Grid>
 
-                                <TextBlock Text="Spielername (Nickname)" />
-                                <TextBox x:Name="NicknameBox" />
-
-                                <TextBlock Text="Modlist-URL (modlist.html)" />
-                                <TextBox x:Name="ModlistUrlBox" />
-
-                                <TextBlock Text="Serverdaten-URL (launcher.json)" />
-                                <TextBox x:Name="ServerDataUrlBox" />
-
-                                <TextBlock Text="Task Force Radio Plugin-URL (.ts3_plugin)" />
-                                <TextBox x:Name="Ts3PluginUrlBox" />
-
-                                <TextBlock Text="GitHub Repo für Auto-Update (https://github.com/owner/repo)" />
-                                <TextBox x:Name="GithubRepoUrlBox" />
-
-                                <CheckBox x:Name="MuteSoundsCheck" Content="TeamSpeak Benachrichtigungstöne stummschalten" />
-                            </StackPanel>
-                        </ScrollViewer>
+                            <CheckBox x:Name="MuteSoundsCheck" Content="TeamSpeak Benachrichtigungstöne stummschalten" />
+                        </StackPanel>
 
                         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
                             <Button Content="Abbrechen" Style="{StaticResource GhostButtonStyle}" Click="OnCancelClick" Margin="0,0,8,0" />

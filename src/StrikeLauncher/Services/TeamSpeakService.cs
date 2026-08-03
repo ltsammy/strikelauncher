@@ -91,16 +91,17 @@ public sealed class TeamSpeakService
         return true;
     }
 
-    public static void LaunchAndConnect(string ts3ClientExePath, TeamSpeakServerInfo server, string? nickname)
+    public static void LaunchAndConnect(string ts3ClientExePath, TeamSpeakServerInfo server)
     {
         var uri = $"ts3server://{server.Host}?port={server.Port}";
         if (!string.IsNullOrWhiteSpace(server.Password)) uri += $"&password={Uri.EscapeDataString(server.Password)}";
-        if (!string.IsNullOrWhiteSpace(nickname)) uri += $"&nickname={Uri.EscapeDataString(nickname)}";
 
-        // ts3server:// is a registered URI scheme handled by the TS3 client itself, so
-        // this both launches TeamSpeak (if needed) and connects, without needing the exe path.
-        _ = ts3ClientExePath;
-        Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+        // Pass the ts3server:// string directly as an argument to the client exe instead
+        // of relying on Windows having that URI scheme registered (UseShellExecute=true
+        // throws "Anwendung nicht gefunden" / Win32Exception on installs where it isn't -
+        // confirmed happening on a real player's machine even with TS3 properly installed).
+        // TS3 parses this exact string from its own argv regardless of protocol registration.
+        Process.Start(new ProcessStartInfo(ts3ClientExePath, $"\"{uri}\"") { UseShellExecute = false });
     }
 
     /// <summary>

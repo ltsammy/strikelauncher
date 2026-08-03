@@ -1,9 +1,8 @@
 {
-  "ModlistUrl": "https://ageofclones.de/strikelauncher/modlist.html",
+  "ModlistUrl": "https://ageofclones.de/strikelauncher/workshop.json",
   "ServerDataUrl": "https://ageofclones.de/strikelauncher/launcher.json",
   "Ts3PluginUrl": "https://raw.githubusercontent.com/ltsammy/strikelauncher/main/ts3plugin/task_force_radio.ts3_plugin",
   "Ts3PluginDllHint": "TFAR",
   "GithubRepoUrl": "https://github.com/ltsammy/strikelauncher",
-  "MuteTeamSpeakSounds": true,
-  "PlayerNickname": ""
+  "MuteTeamSpeakSounds": true
 }

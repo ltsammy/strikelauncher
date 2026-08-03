@@ -73,6 +73,11 @@ public sealed class SettingsService
         {
             settings.Ts3PluginDllHint = "TFAR";
         }
+
+        if (settings.ModlistUrl.EndsWith("/modlist.html", StringComparison.OrdinalIgnoreCase))
+        {
+            settings.ModlistUrl = settings.ModlistUrl[..^"modlist.html".Length] + "workshop.json";
+        }
     }
 
     public void Save(AppSettings settings)

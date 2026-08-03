@@ -8,8 +8,6 @@ public sealed class AppSettings
 
     public string? TeamSpeakPath { get; set; }
 
-    public string PlayerNickname { get; set; } = string.Empty;
-
     public string ModlistUrl { get; set; } = string.Empty;
 
     public string ServerDataUrl { get; set; } = string.Empty;
