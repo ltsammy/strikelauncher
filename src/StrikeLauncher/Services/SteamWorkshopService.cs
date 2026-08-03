@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace StrikeLauncher.Services;
 
@@ -61,6 +63,32 @@ public sealed class SteamWorkshopService : IDisposable
     private static extern IntPtr SteamAPI_SteamUGC_v021();
 
     [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SteamAPI_SteamFriends_v018();
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SteamAPI_ISteamFriends_GetPersonaName(IntPtr self);
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int SteamAPI_ISteamFriends_GetMediumFriendAvatar(IntPtr self, ulong steamIdFriend);
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SteamAPI_SteamUser_v023();
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern ulong SteamAPI_ISteamUser_GetSteamID(IntPtr self);
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr SteamAPI_SteamUtils_v011();
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    private static extern bool SteamAPI_ISteamUtils_GetImageSize(IntPtr self, int image, out uint width, out uint height);
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U1)]
+    private static extern bool SteamAPI_ISteamUtils_GetImageRGBA(IntPtr self, int image, byte[] destBuffer, int destBufferSize);
+
+    [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
     private static extern ulong SteamAPI_ISteamUGC_SubscribeItem(IntPtr self, ulong publishedFileId);
 
     [DllImport(SteamApiDll, CallingConvention = CallingConvention.Cdecl)]
@@ -72,6 +100,7 @@ public sealed class SteamWorkshopService : IDisposable
 
     private Timer? _callbackPump;
     private IntPtr _ugc;
+    private IntPtr _friends;
 
     public bool IsInitialized { get; private set; }
 
@@ -102,10 +131,60 @@ public sealed class SteamWorkshopService : IDisposable
                 return false;
             }
 
+            _friends = SteamAPI_SteamFriends_v018();
             _callbackPump = new Timer(_ => SteamAPI_RunCallbacks(), null, 0, 100);
         }
 
         return IsInitialized;
+    }
+
+    public string? GetPersonaName()
+    {
+        if (!IsInitialized || _friends == IntPtr.Zero) return null;
+
+        var ptr = SteamAPI_ISteamFriends_GetPersonaName(_friends);
+        return ptr == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(ptr);
+    }
+
+    /// <summary>
+    /// The local user's own avatar is preloaded by the Steam client, so - unlike friends'
+    /// avatars - it's available synchronously right after init, no AvatarImageLoaded_t
+    /// callback wait needed.
+    /// </summary>
+    public BitmapSource? GetAvatarImage()
+    {
+        if (!IsInitialized || _friends == IntPtr.Zero) return null;
+
+        try
+        {
+            var user = SteamAPI_SteamUser_v023();
+            var utils = SteamAPI_SteamUtils_v011();
+            if (user == IntPtr.Zero || utils == IntPtr.Zero) return null;
+
+            var steamId = SteamAPI_ISteamUser_GetSteamID(user);
+            var imageHandle = SteamAPI_ISteamFriends_GetMediumFriendAvatar(_friends, steamId);
+            if (imageHandle <= 0) return null;
+
+            if (!SteamAPI_ISteamUtils_GetImageSize(utils, imageHandle, out var width, out var height) || width == 0 || height == 0)
+                return null;
+
+            var buffer = new byte[width * height * 4];
+            if (!SteamAPI_ISteamUtils_GetImageRGBA(utils, imageHandle, buffer, buffer.Length))
+                return null;
+
+            for (var i = 0; i < buffer.Length; i += 4)
+            {
+                (buffer[i], buffer[i + 2]) = (buffer[i + 2], buffer[i]); // RGBA -> BGRA
+            }
+
+            var bitmap = BitmapSource.Create((int)width, (int)height, 96, 96, PixelFormats.Bgra32, null, buffer, (int)width * 4);
+            bitmap.Freeze();
+            return bitmap;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<SubscribeOutcome> SubscribeAndInstallAsync(

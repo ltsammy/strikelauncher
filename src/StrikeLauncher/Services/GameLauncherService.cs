@@ -11,7 +11,7 @@ public sealed class GameLauncherService
     /// the flags needed for the fastest possible cold start, the resolved mod set,
     /// and - if server info is supplied - a direct connect.
     /// </summary>
-    public static void Launch(string arma3ExePath, string modParameter, ArmaServerInfo? server, string? playerNickname)
+    public static Process? Launch(string arma3ExePath, string modParameter, ArmaServerInfo? server, string? playerNickname)
     {
         var args = new List<string> { "-noSplash", "-skipIntro", "-noPause", "-noLogs", "-hugePages" };
 
@@ -35,7 +35,7 @@ public sealed class GameLauncherService
             args.Add($"-name=\"{playerNickname}\"");
         }
 
-        Process.Start(new ProcessStartInfo(arma3ExePath, string.Join(' ', args))
+        return Process.Start(new ProcessStartInfo(arma3ExePath, string.Join(' ', args))
         {
             UseShellExecute = false,
             WorkingDirectory = Path.GetDirectoryName(arma3ExePath) ?? string.Empty

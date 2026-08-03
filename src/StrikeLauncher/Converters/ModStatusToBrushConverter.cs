@@ -19,7 +19,15 @@ public sealed class ModStatusToBrushConverter : IValueConverter
             _ => "MutedBrush"
         };
 
-        return Application.Current.TryFindResource(key) as SolidColorBrush ?? Brushes.Gray;
+        var brush = Application.Current.TryFindResource(key) as SolidColorBrush ?? Brushes.Gray;
+
+        if (string.Equals(parameter as string, "Subtle", StringComparison.OrdinalIgnoreCase))
+        {
+            var c = brush.Color;
+            return new SolidColorBrush(Color.FromArgb(38, c.R, c.G, c.B));
+        }
+
+        return brush;
     }
 
     public object ConvertBack(object? value, Type targetType, object parameter, CultureInfo culture) =>

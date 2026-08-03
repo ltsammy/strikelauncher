@@ -45,6 +45,48 @@ public sealed class TeamSpeakService
         });
     }
 
+    /// <summary>
+    /// Closes any running TeamSpeak client instances: asks nicely first (CloseMainWindow,
+    /// like clicking the window's X), then force-kills anything still around after a short
+    /// grace period. Used to shut TeamSpeak down together with Arma 3.
+    /// </summary>
+    public static async Task CloseAllInstancesAsync()
+    {
+        if (Process.GetProcessesByName("ts3client_win64").Length == 0) return;
+
+        foreach (var process in Process.GetProcessesByName("ts3client_win64"))
+        {
+            using (process)
+            {
+                try
+                {
+                    process.CloseMainWindow();
+                }
+                catch
+                {
+                    // process may have already exited between the enumeration and this call
+                }
+            }
+        }
+
+        await Task.Delay(3000);
+
+        foreach (var process in Process.GetProcessesByName("ts3client_win64"))
+        {
+            using (process)
+            {
+                try
+                {
+                    if (!process.HasExited) process.Kill();
+                }
+                catch
+                {
+                    // already exited, or we don't have permission to kill it - nothing more we can do
+                }
+            }
+        }
+    }
+
     public static void LaunchAndConnect(string ts3ClientExePath, TeamSpeakServerInfo server, string? nickname)
     {
         var uri = $"ts3server://{server.Host}?port={server.Port}";

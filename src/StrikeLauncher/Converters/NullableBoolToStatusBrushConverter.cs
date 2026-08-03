@@ -5,11 +5,18 @@ using System.Windows.Media;
 
 namespace StrikeLauncher.Converters;
 
-public sealed class BoolToStatusBrushConverter : IValueConverter
+/// <summary>true = online (ok), false = offline (error), null = still checking (muted).</summary>
+public sealed class NullableBoolToStatusBrushConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
     {
-        var key = value is true ? "OkBrush" : "WarnBrush";
+        var key = value switch
+        {
+            true => "OkBrush",
+            false => "ErrorBrush",
+            _ => "MutedBrush"
+        };
+
         return Application.Current.TryFindResource(key) as SolidColorBrush ?? Brushes.Gray;
     }
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,6 +22,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly SteamWorkshopService _steamWorkshop = new();
     private readonly BackgroundImageService _backgroundImageService;
 
+    private readonly CancellationTokenSource _serverStatusCts = new();
+
     private AppSettings _settings;
     private string? _workshopContentPath;
     private ServerData? _serverData;
@@ -35,6 +38,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DetectPaths();
         _ = CheckForUpdatesAsync();
         _ = LoadServerDataAndBackgroundAsync();
+        _ = InitializeSteamAsync();
+        _ = ServerStatusLoopAsync(_serverStatusCts.Token);
     }
 
     public ObservableCollection<ModStatusItem> Mods { get; } = new();
@@ -48,17 +53,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private bool _isBusy;
 
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanLaunch));
+
+    [ObservableProperty]
+    private bool _isArma3Running;
+
+    partial void OnIsArma3RunningChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanLaunch));
+        OnPropertyChanged(nameof(StartButtonLabel));
+    }
+
+    public bool CanLaunch => !IsBusy && !IsArma3Running;
+
+    public string StartButtonLabel => IsArma3Running ? "LÄUFT" : "START";
+
     [ObservableProperty]
     private string? _arma3Path;
 
-    partial void OnArma3PathChanged(string? value) => OnPropertyChanged(nameof(IsReady));
-
     [ObservableProperty]
     private string? _teamSpeakPath;
-
-    partial void OnTeamSpeakPathChanged(string? value) => OnPropertyChanged(nameof(IsReady));
-
-    public bool IsReady => !string.IsNullOrWhiteSpace(Arma3Path) && !string.IsNullOrWhiteSpace(TeamSpeakPath);
 
     [ObservableProperty]
     private bool _ts3PluginInstalled;
@@ -72,6 +86,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnLauncherDownloadUrlChanged(string? value) => OnPropertyChanged(nameof(HasDownloadUrl));
 
     public bool HasDownloadUrl => !string.IsNullOrWhiteSpace(LauncherDownloadUrl);
+
+    [ObservableProperty]
+    private string? _steamUserName;
+
+    [ObservableProperty]
+    private ImageSource? _steamAvatar;
+
+    [ObservableProperty]
+    private bool? _arma3ServerOnline;
+
+    [ObservableProperty]
+    private bool? _teamSpeakServerOnline;
 
     public AppSettings Settings => _settings;
 
@@ -138,6 +164,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task CheckAndSubscribeModsAsync()
+    {
+        await CheckModsAsync();
+        await SubscribeMissingAsync();
     }
 
     [RelayCommand]
@@ -304,9 +337,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? ModManager.BuildModParameter(Mods.Select(m => m.Mod), _workshopContentPath)
             : string.Empty;
 
-        GameLauncherService.Launch(arma3Exe, modParameter, _serverData?.Arma3, _settings.PlayerNickname);
+        var process = GameLauncherService.Launch(arma3Exe, modParameter, _serverData?.Arma3, _settings.PlayerNickname);
         Log("Arma 3 wird gestartet...");
         StatusText = "Arma 3 gestartet.";
+
+        if (process is not null)
+        {
+            IsArma3Running = true;
+            _ = MonitorArma3ExitAsync(process);
+        }
+    }
+
+    private async Task MonitorArma3ExitAsync(Process process)
+    {
+        try
+        {
+            await process.WaitForExitAsync();
+        }
+        catch
+        {
+            // process handle can be unusable in edge cases (e.g. it already exited) - nothing to recover here
+        }
+
+        IsArma3Running = false;
+        Log("Arma 3 wurde beendet - schließe TeamSpeak...");
+        await TeamSpeakService.CloseAllInstancesAsync();
     }
 
     private async Task CheckForUpdatesAsync()
@@ -315,6 +370,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var updateService = new UpdateService(_settings.GithubRepoUrl);
         await updateService.CheckAndApplyAsync(Log);
+    }
+
+    private async Task InitializeSteamAsync()
+    {
+        var initialized = await Task.Run(() => _steamWorkshop.Initialize());
+        SteamUserName = initialized ? _steamWorkshop.GetPersonaName() : null;
+        SteamAvatar = initialized ? _steamWorkshop.GetAvatarImage() : null;
+    }
+
+    private async Task ServerStatusLoopAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            if (_serverData is not null)
+            {
+                if (!string.IsNullOrWhiteSpace(_serverData.Arma3.Ip))
+                {
+                    Arma3ServerOnline = await ServerStatusService.CheckArma3Async(
+                        _serverData.Arma3.Ip, _serverData.Arma3.Port, TimeSpan.FromSeconds(3), ct);
+                }
+
+                if (!string.IsNullOrWhiteSpace(_serverData.TeamSpeak.Host))
+                {
+                    TeamSpeakServerOnline = await ServerStatusService.CheckTeamSpeakAsync(
+                        _serverData.TeamSpeak.Host, TimeSpan.FromSeconds(3), ct);
+                }
+            }
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(_serverData is null ? 5 : 60), ct);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
     }
 
     public void SaveSettings(AppSettings settings)
@@ -336,6 +428,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _serverStatusCts.Cancel();
+        _serverStatusCts.Dispose();
         _steamWorkshop.Dispose();
         _http.Dispose();
     }
