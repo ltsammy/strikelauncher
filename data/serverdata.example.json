@@ -1,0 +1,14 @@
+{
+  "arma3": {
+    "ip": "203.0.113.10",
+    "port": 2302,
+    "password": ""
+  },
+  "teamSpeak": {
+    "host": "ts.example-server.de",
+    "port": 9987,
+    "password": ""
+  },
+  "launcherBackgroundUrl": "https://ageofclones.de/strikelauncher/background.jpg",
+  "launcherDownloadUrl": "https://ageofclones.de/strikelauncher/download"
+}
