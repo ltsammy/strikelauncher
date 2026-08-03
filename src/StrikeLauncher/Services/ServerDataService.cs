@@ -26,8 +26,14 @@ public sealed class ServerDataService
 
         // Some feeds bake "host:port" into the host field itself (in addition to a
         // separate Port property) - strip it so URI building doesn't double it up.
-        data.TeamSpeak.Host = StripPort(data.TeamSpeak.Host);
-        data.Arma3.Ip = StripPort(data.Arma3.Ip);
+        data.TeamSpeak.Host = StripPort(data.TeamSpeak.Host.Trim());
+        data.Arma3.Ip = StripPort(data.Arma3.Ip.Trim());
+
+        // A stray trailing space/newline pasted into a CMS text field is an easy mistake
+        // to make and invisible in most UIs - trim defensively so it can't silently break
+        // the Arma3 -password= / TS3 connect password match.
+        data.Arma3.Password = data.Arma3.Password.Trim();
+        data.TeamSpeak.Password = data.TeamSpeak.Password.Trim();
 
         return data;
     }

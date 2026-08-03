@@ -28,7 +28,11 @@ public sealed class SettingsService
             {
                 var json = File.ReadAllText(SettingsPath);
                 var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
-                if (settings is not null) return settings;
+                if (settings is not null)
+                {
+                    MigrateStaleDefaults(settings);
+                    return settings;
+                }
             }
             catch (JsonException)
             {
@@ -56,6 +60,19 @@ public sealed class SettingsService
         }
 
         return new AppSettings();
+    }
+
+    /// <summary>
+    /// A settings.json persisted by an earlier build can carry a value that has since
+    /// turned out to be wrong (e.g. a plugin detection hint that never matched the real
+    /// DLL name) - fix those in place so existing installs self-heal on next launch.
+    /// </summary>
+    private static void MigrateStaleDefaults(AppSettings settings)
+    {
+        if (settings.Ts3PluginDllHint == "task_force_radio")
+        {
+            settings.Ts3PluginDllHint = "TFAR";
+        }
     }
 
     public void Save(AppSettings settings)

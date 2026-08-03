@@ -16,7 +16,9 @@ public sealed class AppSettings
 
     public string Ts3PluginUrl { get; set; } = string.Empty;
 
-    public string Ts3PluginDllHint { get; set; } = "task_force_radio";
+    // Matches the actual plugin binary bundled in task_force_radio.ts3_plugin
+    // (plugins/TFAR_win64.dll), not the mod's own display name.
+    public string Ts3PluginDllHint { get; set; } = "TFAR";
 
     public bool MuteTeamSpeakSounds { get; set; } = true;
 

@@ -16,12 +16,9 @@ public sealed class ModManager
     public static IReadOnlyList<ModEntry> GetMissing(IEnumerable<ModEntry> required, string workshopContentPath) =>
         required.Where(mod => !IsInstalled(mod, workshopContentPath)).ToList();
 
-    public static string BuildModParameter(IEnumerable<ModEntry> required, string workshopContentPath)
-    {
-        var installedPaths = required
+    public static IReadOnlyList<string> GetInstalledModPaths(IEnumerable<ModEntry> required, string workshopContentPath) =>
+        required
             .Select(mod => Path.Combine(workshopContentPath, mod.WorkshopId.ToString()))
-            .Where(Directory.Exists);
-
-        return string.Join(';', installedPaths);
-    }
+            .Where(Directory.Exists)
+            .ToList();
 }

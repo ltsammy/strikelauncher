@@ -302,8 +302,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var bytes = await _http.GetByteArrayAsync(_settings.Ts3PluginUrl);
             await File.WriteAllBytesAsync(tempPluginPath, bytes);
 
-            TeamSpeakService.InstallPlugin(ts3Exe, tempPluginPath);
-            Log("TS3-Installationsdialog geöffnet - bitte bestätigen, danach TeamSpeak neu starten.");
+            TeamSpeakService.InstallPlugin(tempPluginPath);
+            Log("TS3-Installationsdialog geöffnet.");
+
+            // The plugin dialog needs a human click - block here so Arma 3 never starts
+            // before TeamSpeak (and the plugin) are actually ready, matching the intended
+            // "TS3 first, then Arma" order instead of firing both almost simultaneously.
+            MessageBox.Show(
+                "TeamSpeak hat den Plugin-Installationsdialog geöffnet. Bitte bestätige die Installation " +
+                "(und starte TeamSpeak danach einmal neu, falls es bereits offen war), dann auf OK klicken " +
+                "um mit dem Start fortzufahren.",
+                "Task Force Radio Plugin installieren",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
 
         if (_settings.MuteTeamSpeakSounds)
@@ -311,13 +322,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var muted = TeamSpeakService.TryMuteNotificationSounds();
             Log(muted
                 ? "Benachrichtigungstöne stummgeschaltet."
-                : "Konnte Töne nicht automatisch stummschalten - bitte in TS3 unter Optionen > Benachrichtigungen den Soundpack 'StrikeLauncher-Silent' auswählen.");
+                : "Konnte Töne nicht automatisch stummschalten - bitte in TS3 unter Optionen > Benachrichtigungen den Soundpack 'Sounds deactivated' auswählen.");
         }
 
         if (_serverData is not null && !string.IsNullOrWhiteSpace(_serverData.TeamSpeak.Host))
         {
             TeamSpeakService.LaunchAndConnect(ts3Exe, _serverData.TeamSpeak, _settings.PlayerNickname);
             Log($"Verbinde mit TeamSpeak {_serverData.TeamSpeak.Host}:{_serverData.TeamSpeak.Port}...");
+
+            // Give TeamSpeak a head start before Arma 3 launches, instead of both
+            // fighting for focus/network at the same instant.
+            await Task.Delay(TimeSpan.FromSeconds(5));
         }
     }
 
@@ -333,11 +348,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? Path.Combine(_settings.Arma3Path, "arma3_x64.exe")
             : Path.Combine(_settings.Arma3Path, "arma3.exe");
 
-        var modParameter = _workshopContentPath is not null
-            ? ModManager.BuildModParameter(Mods.Select(m => m.Mod), _workshopContentPath)
-            : string.Empty;
+        var modPaths = _workshopContentPath is not null
+            ? ModManager.GetInstalledModPaths(Mods.Select(m => m.Mod), _workshopContentPath)
+            : Array.Empty<string>();
 
-        var process = GameLauncherService.Launch(arma3Exe, modParameter, _serverData?.Arma3, _settings.PlayerNickname);
+        Log($"Starte mit {modPaths.Count} Mods: {string.Join(", ", Mods.Select(m => m.Name))}");
+
+        var process = GameLauncherService.Launch(arma3Exe, modPaths, _serverData?.Arma3, _settings.PlayerNickname);
         Log("Arma 3 wird gestartet...");
         StatusText = "Arma 3 gestartet.";
 
@@ -361,7 +378,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         IsArma3Running = false;
         Log("Arma 3 wurde beendet - schließe TeamSpeak...");
-        await TeamSpeakService.CloseAllInstancesAsync();
+        var closed = await TeamSpeakService.CloseAllInstancesAsync();
+        Log(closed ? "TeamSpeak wurde geschlossen." : "TeamSpeak war nicht mehr offen.");
     }
 
     private async Task CheckForUpdatesAsync()

@@ -11,13 +11,17 @@ public sealed class GameLauncherService
     /// the flags needed for the fastest possible cold start, the resolved mod set,
     /// and - if server info is supplied - a direct connect.
     /// </summary>
-    public static Process? Launch(string arma3ExePath, string modParameter, ArmaServerInfo? server, string? playerNickname)
+    public static Process? Launch(string arma3ExePath, IEnumerable<string> modPaths, ArmaServerInfo? server, string? playerNickname)
     {
         var args = new List<string> { "-noSplash", "-skipIntro", "-noPause", "-noLogs", "-hugePages" };
 
-        if (!string.IsNullOrWhiteSpace(modParameter))
+        // One -mod= flag per path instead of a single "-mod=\"a;b;c\"" - avoids any
+        // ambiguity around quoting a semicolon-separated list, and each path still gets
+        // its own quotes in case a Steam library lives under a directory with a space
+        // in it (e.g. "Program Files (x86)").
+        foreach (var modPath in modPaths)
         {
-            args.Add($"-mod=\"{modParameter}\"");
+            args.Add($"-mod=\"{modPath}\"");
         }
 
         if (server is not null && !string.IsNullOrWhiteSpace(server.Ip))
@@ -26,7 +30,7 @@ public sealed class GameLauncherService
             args.Add($"-port={server.Port}");
             if (!string.IsNullOrWhiteSpace(server.Password))
             {
-                args.Add($"-password={server.Password}");
+                args.Add($"-password=\"{server.Password}\"");
             }
         }
 

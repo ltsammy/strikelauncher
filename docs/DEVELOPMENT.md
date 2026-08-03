@@ -119,13 +119,16 @@ abonnieren.
   was den nativen "Plugin installieren?"-Dialog von TeamSpeak öffnet. Bewusst nicht
   komplett "silent" umgesetzt, da das Format (`package.ini`-gesteuertes ZIP) inoffiziell
   ist und sich zwischen Client-Versionen ändern kann - der native Dialog ist stabil.
-- **Sounds stumm**: Der Launcher legt einen stillen Soundpack (`StrikeLauncher-Silent`,
-  0-Byte-WAVs) an und versucht, ihn über `settings.db` (SQLite) automatisch zu aktivieren.
-  Das DB-Schema von TeamSpeak ist nicht offiziell dokumentiert, daher: `settings.db` wird
-  vorher gesichert (`settings.db.strikelauncher.bak`), und wenn nichts Passendes gefunden
-  wird, überspringt der Launcher das und loggt einen Hinweis. Fallback (einmalig, 10
-  Sekunden): TeamSpeak -> Optionen -> Benachrichtigungen -> Soundpack
-  `StrikeLauncher-Silent` auswählen.
+- **Sounds stumm**: Nutzt TS3s eigene eingebaute Option "Sounds deactivated" (Optionen
+  -> Benachrichtigungen -> Sound Pack) - kein eigener generierter Soundpack mehr nötig.
+  Verifiziert gegen ein echtes `settings.db`: Es gibt **keine** einzelne `preferences`-
+  Tabelle, sondern mehrere Section-Tabellen (`Notifications`, `Application`, `General`),
+  jeweils mit Schema `(timestamp, key, value)`. Der Schlüssel heißt `SoundPack`, der Wert
+  für "stumm" ist der String `nosounds` - TS3 selbst schreibt das identisch in alle drei
+  Tabellen, wenn man die Option über die UI wählt, daher patcht der Launcher alle drei.
+  `settings.db` wird vorher gesichert (`settings.db.strikelauncher.bak`). Fallback, falls
+  eine der Tabellen fehlt (z. B. bei einer neueren/älteren Client-Version): TeamSpeak ->
+  Optionen -> Benachrichtigungen -> Soundpack "Sounds deactivated" manuell auswählen.
 - **Verbindung**: über das `ts3server://` URI-Schema (Host/Port/Passwort aus `launcher.json`).
 - **Auto-Close**: `MainViewModel` wartet nach dem Arma-3-Start per
   `Process.WaitForExitAsync()` auf das Spielende und ruft dann
