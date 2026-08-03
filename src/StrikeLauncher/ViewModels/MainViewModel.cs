@@ -40,6 +40,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = LoadServerDataAndBackgroundAsync();
         _ = InitializeSteamAsync();
         _ = ServerStatusLoopAsync(_serverStatusCts.Token);
+        _ = CheckModsAsync();
     }
 
     public ObservableCollection<ModStatusItem> Mods { get; } = new();

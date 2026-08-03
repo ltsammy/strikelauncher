@@ -97,11 +97,14 @@ public sealed class TeamSpeakService
         if (!string.IsNullOrWhiteSpace(server.Password)) uri += $"&password={Uri.EscapeDataString(server.Password)}";
 
         // Pass the ts3server:// string directly as an argument to the client exe instead
-        // of relying on Windows having that URI scheme registered (UseShellExecute=true
-        // throws "Anwendung nicht gefunden" / Win32Exception on installs where it isn't -
-        // confirmed happening on a real player's machine even with TS3 properly installed).
-        // TS3 parses this exact string from its own argv regardless of protocol registration.
-        Process.Start(new ProcessStartInfo(ts3ClientExePath, $"\"{uri}\"") { UseShellExecute = false });
+        // of relying on Windows having that URI scheme registered ("Anwendung nicht
+        // gefunden" on installs where it isn't - confirmed on a real player's machine).
+        // UseShellExecute stays true (via ShellExecuteEx, not CreateProcess directly):
+        // some TS3 installs have ts3client_win64.exe flagged to require elevation (either
+        // its own manifest or a user-set compatibility flag) - only ShellExecute shows the
+        // UAC prompt automatically; UseShellExecute=false fails outright with "Der
+        // angeforderte Vorgang erfordert erhöhte Rechte" (also confirmed on a real player).
+        Process.Start(new ProcessStartInfo(ts3ClientExePath, $"\"{uri}\"") { UseShellExecute = true });
     }
 
     /// <summary>

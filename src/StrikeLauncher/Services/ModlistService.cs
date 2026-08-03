@@ -27,7 +27,7 @@ public sealed class ModlistService
 
     public async Task<IReadOnlyList<ModEntry>> FetchAsync(string url, CancellationToken ct = default)
     {
-        var json = await _http.GetStringAsync(url, ct);
+        var json = await _http.GetStringNoCacheAsync(url, ct);
         return Parse(json);
     }
 

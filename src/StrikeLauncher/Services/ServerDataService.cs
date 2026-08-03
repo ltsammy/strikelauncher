@@ -21,7 +21,7 @@ public sealed class ServerDataService
 
     public async Task<ServerData> FetchAsync(string url, CancellationToken ct = default)
     {
-        var json = await _http.GetStringAsync(url, ct);
+        var json = await _http.GetStringNoCacheAsync(url, ct);
         var data = JsonSerializer.Deserialize<ServerData>(json, JsonOptions) ?? new ServerData();
 
         // Some feeds bake "host:port" into the host field itself (in addition to a
